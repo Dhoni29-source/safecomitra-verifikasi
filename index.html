@@ -19,7 +19,7 @@
     if (!kode) {
       hasil.innerHTML = '❌ <span class="error">Kode tidak diberikan.</span><br>Gunakan URL seperti <b>?kode=1VSMS2025F001</b>';
     } else {
-      fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vThiattu8_tRgcLv3sjQ3Yg1Br93034MLQD5MrFTSIaa_9gMddFFMHcp2C2vWeClG_9-VltFScOJKOf/pub?output=csv')
+      fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vToiXzfx8AI4KHnuKNSSvMGqa5yzLPy2EYo27qkiePBRgSmHS-L4KXpfj0coMt6U5Jtz7X8sOvJhcSj/pub?output=csv')
         .then(response => response.text())
         .then(csv => {
           const rows = csv.split('\n').slice(1); // buang header
