@@ -5,8 +5,9 @@
   <title>Verifikasi Sertifikat</title>
   <style>
     body { font-family: Arial, sans-serif; background: #f2f2f2; text-align: center; padding: 50px; }
-    .result { background: white; padding: 20px; border-radius: 8px; display: inline-block; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .result { background: white; padding: 20px; border-radius: 8px; display: inline-block; max-width: 700px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     .error { color: red; font-weight: bold; }
+    iframe { margin-top: 20px; border: 1px solid #ccc; border-radius: 8px; }
   </style>
 </head>
 <body>
@@ -17,23 +18,33 @@
     const hasil = document.getElementById('hasil');
 
     if (!kode) {
-      hasil.innerHTML = '❌ <span class="error">Kode tidak diberikan.</span><br>Gunakan URL seperti <b>?kode=1VSMS2025F001</b>';
+      hasil.innerHTML = '❌ <span class="error">Kode tidak diberikan.</span><br>Gunakan URL seperti <b>?kode=1VSMS2025F006</b>';
     } else {
-      fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vThiattu8_tRgcLv3sjQ3Yg1Br93034MLQD5MrFTSIaa_9gMddFFMHcp2C2vWeClG_9-VltFScOJKOf/pubhtml')
+      fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vThiattu8_tRgcLv3sjQ3Yg1Br93034MLQD5MrFTSIaa_9gMddFFMHcp2C2vWeClG_9-VltFScOJKOf/pub?output=csv')
         .then(response => response.text())
         .then(csv => {
-          const rows = csv.split('\n').slice(1); // buang header
+          const rows = csv.split('\n').slice(1);
           const data = rows.map(row => row.split(','));
 
-          const cocok = data.find(r => r[0].trim() === kode);
+          const cocok = data.find(r => r[2]?.trim() === kode); // kolom kode
           if (cocok) {
+            let link = cocok[5];
+            let embedView = "";
+            if (link.includes('drive.google.com/file/d/')) {
+              const idMatch = link.match(/\/d\/([^\/]+)/);
+              if (idMatch) {
+                const fileId = idMatch[1];
+                embedView = `<iframe src="https://drive.google.com/file/d/${fileId}/preview" width="100%" height="480" allow="autoplay"></iframe>`;
+              }
+            }
+
             hasil.innerHTML = `
               ✅ Sertifikat ditemukan!<br><br>
               <b>Nama:</b> ${cocok[1]}<br>
               <b>Kode:</b> ${cocok[2]}<br>
               <b>Pelatihan:</b> ${cocok[3]}<br>
-              <b>Tanggal:</b> ${cocok[4]}<br>
-              <a href="${cocok[5]}" target="_blank">🔗 Lihat Sertifikat</a>
+              <b>Tanggal:</b> ${cocok[4]}<br><br>
+              ${embedView}
             `;
           } else {
             hasil.innerHTML = '❌ <span class="error">Sertifikat tidak ditemukan.</span><br>Periksa kode Anda.';
