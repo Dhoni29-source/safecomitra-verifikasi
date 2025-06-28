@@ -1,61 +1,47 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Verifikasi Sertifikat - Safecomitra Solution</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verifikasi Sertifikat</title>
   <style>
-    body { font-family: sans-serif; padding: 24px; background: #f2f2f2; }
-    .container { max-width: 600px; margin: auto; background: #fff; padding: 24px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    h2 { color: #007b33; text-align: center; }
-    p { margin: 12px 0; }
-    .error { color: red; text-align: center; font-weight: bold; }
-    a { color: #007bff; text-decoration: none; }
+    body { font-family: Arial, sans-serif; background: #f2f2f2; text-align: center; padding: 50px; }
+    .result { background: white; padding: 20px; border-radius: 8px; display: inline-block; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .error { color: red; font-weight: bold; }
   </style>
 </head>
 <body>
-  <div class="container" id="hasil">
-    <p>🔍 Sedang memuat data sertifikat...</p>
-  </div>
+  <div id="hasil" class="result">🔄 Sedang memuat data...</div>
 
   <script>
-    const kode = new URLSearchParams(window.location.search).get("kode")?.trim();
-    const hasil = document.getElementById("hasil");
+    const kode = new URLSearchParams(window.location.search).get('kode');
+    const hasil = document.getElementById('hasil');
 
     if (!kode) {
-      hasil.innerHTML = `<p class="error">❌ Kode tidak diberikan.<br>Gunakan URL seperti ?kode=1VSMS2025F001</p>`;
+      hasil.innerHTML = '❌ <span class="error">Kode tidak diberikan.</span><br>Gunakan URL seperti <b>?kode=1VSMS2025F001</b>';
     } else {
-      fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vThiattu8_tRgcLv3sjQ3Yg1Br93034MLQD5MrFTSIaa_9gMddFFMHcp2C2vWeClG_9-VltFScOJKOf/pub?output=csv")
-        .then(r => r.text())
+      fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vThiattu8_tRgcLv3sjQ3Yg1Br93034MLQD5MrFTSIaa_9gMddFFMHcp2C2vWeClG_9-VltFScOJKOf/pub?output=csv')
+        .then(response => response.text())
         .then(csv => {
-          const [headerLine, ...lines] = csv.trim().split("\n");
-          const headers = headerLine.split(",").map(h => h.trim().toLowerCase());
-          const data = lines.map(line => {
-            const values = line.split(",");
-            let row = {};
-            headers.forEach((h, i) => row[h] = values[i]?.trim() || "");
-            return row;
-          });
+          const rows = csv.split('\n').slice(1); // buang header
+          const data = rows.map(row => row.split(','));
 
-          const ditemukan = data.find(row => row["kode"] === kode);
-
-          if (ditemukan) {
+          const cocok = data.find(r => r[0].trim() === kode);
+          if (cocok) {
             hasil.innerHTML = `
-              <h2>✅ Sertifikat Ditemukan</h2>
-              <p><strong>Nama:</strong><br>${ditemukan["nama"]}</p>
-              <p><strong>Nomor Sertifikat:</strong><br>${ditemukan["kode"]}</p>
-              <p><strong>Pelatihan:</strong><br>${ditemukan["pelatihan"]}</p>
-              <p><strong>Tanggal:</strong><br>${ditemukan["tanggal"]}</p>
-              ${ditemukan["link web"] ? `<p><a href="${ditemukan["link web"]}" target="_blank">🔗 Lihat Sertifikat</a></p>` : ""}
+              ✅ Sertifikat ditemukan!<br><br>
+              <b>Nama:</b> ${cocok[1]}<br>
+              <b>Kode:</b> ${cocok[2]}<br>
+              <b>Pelatihan:</b> ${cocok[3]}<br>
+              <b>Tanggal:</b> ${cocok[4]}<br>
+              <a href="${cocok[5]}" target="_blank">🔗 Lihat Sertifikat</a>
             `;
           } else {
-            hasil.innerHTML = `<p class="error">❌ Sertifikat tidak ditemukan.<br>Pastikan kode benar.</p>`;
+            hasil.innerHTML = '❌ <span class="error">Sertifikat tidak ditemukan.</span><br>Periksa kode Anda.';
           }
         })
-        .catch(err => {
-          console.error(err);
-          hasil.innerHTML = `<p class="error">⚠️ Terjadi kesalahan saat mengambil data.</p>`;
+        .catch(error => {
+          hasil.innerHTML = '❌ <span class="error">Gagal mengambil data.</span>';
+          console.error(error);
         });
     }
   </script>
